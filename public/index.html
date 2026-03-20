@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Visibility Report Generator v1.0.5</title>
+<title>AI Visibility Report Generator v1.0.6</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07070d;--s1:#111119;--s2:#18182a;--bd:#282840;--tx:#e0e0f0;--dim:#7878a0;--ac:#7c5cfc;--ac2:#a898ff;--grn:#00d4aa;--red:#ff5e6e;--orn:#ffc552}
@@ -61,7 +61,7 @@ ul.tk li:last-child{border:none}ul.tk li::before{content:'—';position:absolute
 </style>
 </head>
 <body>
-<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.5</div></div>
+<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.6</div></div>
 <div class="cfg" id="cfgPanel">
   <div class="card">
     <h2>⚡ Generate Report</h2>
@@ -274,14 +274,22 @@ async function dlPDF(){
   const pages=document.querySelectorAll('.page');if(!pages.length)return alert('Generate a report first.');
   const btn=document.getElementById('dlBtn');btn.innerHTML='<span class="sp"></span> Generating...';btn.disabled=true;
   try{if(!window.jspdf?.jsPDF)throw new Error('jsPDF not loaded.');const{jsPDF}=window.jspdf;const pdf=new jsPDF('p','mm','a4');
-    const pw=210,ph=297;
+    const pw=210,ph=297;let first=true;
     for(let i=0;i<pages.length;i++){
-      if(i>0)pdf.addPage();
       const cv=await html2canvas(pages[i],{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff',width:pages[i].scrollWidth});
       const img=cv.toDataURL('image/jpeg',0.92);
       const iw=pw,ih=(cv.height*iw)/cv.width;
-      if(ih<=ph){pdf.addImage(img,'JPEG',0,0,iw,ih)}
-      else{const scale=ph/ih;const sw=iw*scale,sh=ph;pdf.addImage(img,'JPEG',(pw-sw)/2,0,sw,sh)}
+      if(ih<=ph){
+        if(!first)pdf.addPage();first=false;
+        pdf.addImage(img,'JPEG',0,0,iw,ih);
+      }else{
+        let pos=0;
+        while(pos<ih){
+          if(!first)pdf.addPage();first=false;
+          pdf.addImage(img,'JPEG',0,-pos,iw,ih);
+          pos+=ph;
+        }
+      }
     }
     pdf.save(`AI Visibility Analysis - ${(brandInput.value||'Report').replace(/[^\w\s-]/g,'').trim()}.pdf`);
   }catch(e){alert('PDF error: '+e.message)}finally{btn.innerHTML='⬇ Download PDF';btn.disabled=false}
