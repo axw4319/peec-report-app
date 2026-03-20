@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Visibility Report Generator v1.0.2</title>
+<title>AI Visibility Report Generator v1.0.5</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07070d;--s1:#111119;--s2:#18182a;--bd:#282840;--tx:#e0e0f0;--dim:#7878a0;--ac:#7c5cfc;--ac2:#a898ff;--grn:#00d4aa;--red:#ff5e6e;--orn:#ffc552}
@@ -61,7 +61,7 @@ ul.tk li:last-child{border:none}ul.tk li::before{content:'—';position:absolute
 </style>
 </head>
 <body>
-<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.2</div></div>
+<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.5</div></div>
 <div class="cfg" id="cfgPanel">
   <div class="card">
     <h2>⚡ Generate Report</h2>
@@ -87,7 +87,7 @@ function Lc(){document.getElementById('log').innerHTML='';document.getElementByI
 function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 function pf(v){return ((parseFloat(v)||0)*100).toFixed(1)+'%'}
 function fmt(d){return d.toISOString().split('T')[0]}
-function getDates(){const e=new Date();e.setDate(e.getDate()-1);const s=new Date(e);s.setDate(s.getDate()-29);return{start:fmt(s),end:fmt(e)}}
+function getDates(days){const e=new Date();const s=new Date(e);s.setDate(s.getDate()-days);return{start_date:fmt(s),end_date:fmt(e)}}
 function getMonthYear(){return new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase()}
 function newReport(){brandInput.value='';brandInput.dataset.selectedId='';document.getElementById('cfgPanel').scrollIntoView({behavior:'smooth'})}
 
@@ -158,7 +158,6 @@ function donutSVG(items,size){
 
 async function go(){
   const btn=document.getElementById('goBtn');btn.disabled=true;btn.innerHTML='<span class="sp"></span> Working...';Lc();brandColorMap={};
-  const dates=getDates();const dateBody={start_date:dates.start,end_date:dates.end};
   try{
     if(!projHidden.value)throw new Error('Please select a project first.');
     const bName=brandInput.value.trim();if(!bName)throw new Error('Please enter a brand name.');
@@ -168,12 +167,13 @@ async function go(){
     if(!target){target={id:'__custom__',name:bName};L(`"${bName}" not in project — showing at 0%`,'w')}else L(`Target: ${target.name}`);
     L('Fetching prompts...');let prompts=[];try{prompts=(await api('GET','prompts')).data||[];L(`✓ ${prompts.length}`)}catch(e){L('Prompts: '+e.message+' — continuing','w')}
     L('Fetching models...');let models=[];try{models=((await api('GET','models')).data||[]).filter(m=>m.is_active);L(`✓ ${models.length}`)}catch(e){L('Models: '+e.message+' — continuing','w')}
-    L('Fetching brand report...');const reportData=(await api('POST','reports/brands',{},dateBody)).data||[];L(`✓ ${reportData.length}`);
+    L('Fetching brand report (last 7 days)...');let dateBody=getDates(7);let reportData=(await api('POST','reports/brands',{},dateBody)).data||[];L(`✓ ${reportData.length}`);
+    if(!reportData.length){L('No data in last 7 days — fetching all time...','w');dateBody={};reportData=(await api('POST','reports/brands',{},dateBody)).data||[];L(`✓ ${reportData.length} (all time)`)}
     [...reportData].sort((a,b)=>(b.visibility||0)-(a.visibility||0)).forEach(r=>{if(r.brand?.name)getBrandColor(r.brand.name)});
     getBrandColor(target.name);
     L('Fetching model breakdown...');let modelData=[];try{modelData=(await api('POST','reports/brands',{},{...dateBody,dimensions:['model_id']})).data||[];L(`✓ ${modelData.length}`)}catch(e){L(e.message,'w')}
     L('Fetching prompt breakdown...');let promptData=[];try{promptData=(await api('POST','reports/brands',{},{...dateBody,dimensions:['prompt_id']})).data||[];L(`✓ ${promptData.length}`)}catch(e){L(e.message,'w')}
-    L('Rendering...');render({target,brands,prompts,models,reportData,modelData,promptData,dates});L('✓ Done!');
+    L('Rendering...');render({target,brands,prompts,models,reportData,modelData,promptData,dates:dateBody});L('✓ Done!');
   }catch(e){L(`FATAL: ${e.message}`,'e')}finally{btn.disabled=false;btn.innerHTML='Generate Report'}
 }
 
