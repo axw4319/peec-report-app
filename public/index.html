@@ -91,7 +91,7 @@ function getDates(){const e=new Date();e.setDate(e.getDate()-1);const s=new Date
 function getMonthYear(){return new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase()}
 function newReport(){brandInput.value='';brandInput.dataset.selectedId='';document.getElementById('cfgPanel').scrollIntoView({behavior:'smooth'})}
 
-async function apiRaw(m,p,q={},b=null){const r=await fetch('/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method:m,apiPath:p,query:q,body:b,apiKey:API_KEY})});const d=await r.json();if(r.status>=400||d.error)throw new Error(d.error||d.message||JSON.stringify(d).slice(0,200));return d}
+async function apiRaw(m,p,q={},b=null){const r=await fetch('/proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method:m,apiPath:p,query:q,body:b,apiKey:API_KEY})});let d;try{d=await r.json()}catch{throw new Error(`Non-JSON response from ${p}`)}if(r.status>=400||d.error)throw new Error(d.error||d.message||`HTTP ${r.status}`);return d}
 async function api(m,p,q={},b=null){const pid=document.getElementById('projectId').value;if(pid)q.project_id=pid;return apiRaw(m,p,q,b)}
 
 let allProjects=[];
@@ -166,8 +166,8 @@ async function go(){
     const sid=brandInput.dataset.selectedId||'';let target=sid?brands.find(b=>b.id===sid):null;
     if(!target&&bName)target=brands.find(b=>b.name.toLowerCase().includes(bName.toLowerCase()));
     if(!target){target={id:'__custom__',name:bName};L(`"${bName}" not in project — showing at 0%`,'w')}else L(`Target: ${target.name}`);
-    L('Fetching prompts...');const prompts=(await api('GET','prompts')).data||[];L(`✓ ${prompts.length}`);
-    L('Fetching models...');const models=((await api('GET','models')).data||[]).filter(m=>m.is_active);L(`✓ ${models.length}`);
+    L('Fetching prompts...');let prompts=[];try{prompts=(await api('GET','prompts')).data||[];L(`✓ ${prompts.length}`)}catch(e){L('Prompts: '+e.message+' — continuing','w')}
+    L('Fetching models...');let models=[];try{models=((await api('GET','models')).data||[]).filter(m=>m.is_active);L(`✓ ${models.length}`)}catch(e){L('Models: '+e.message+' — continuing','w')}
     L('Fetching brand report...');const reportData=(await api('POST','reports/brands',{},dateBody)).data||[];L(`✓ ${reportData.length}`);
     [...reportData].sort((a,b)=>(b.visibility||0)-(a.visibility||0)).forEach(r=>{if(r.brand?.name)getBrandColor(r.brand.name)});
     getBrandColor(target.name);
