@@ -1,0 +1,17 @@
+{
+  "name": "peec-report-generator",
+  "version": "1.0.0",
+  "description": "AI Visibility Report Generator powered by Peec.ai API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.22.1",
+    "node-fetch": "^2.7.0"
+  }
+}
