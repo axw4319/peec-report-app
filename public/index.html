@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Visibility Report Generator v1.0.6</title>
+<title>AI Visibility Report Generator v1.0.7</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07070d;--s1:#111119;--s2:#18182a;--bd:#282840;--tx:#e0e0f0;--dim:#7878a0;--ac:#7c5cfc;--ac2:#a898ff;--grn:#00d4aa;--red:#ff5e6e;--orn:#ffc552}
@@ -61,7 +61,7 @@ ul.tk li:last-child{border:none}ul.tk li::before{content:'—';position:absolute
 </style>
 </head>
 <body>
-<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.6</div></div>
+<div class="hdr"><div class="logo">ProCloser.AI</div><div class="sep"></div><div class="sub">AI Visibility Report Generator v1.0.7</div></div>
 <div class="cfg" id="cfgPanel">
   <div class="card">
     <h2>⚡ Generate Report</h2>
@@ -232,9 +232,6 @@ function render(D){
       <div class="mb">${mBreak.slice(0,5).map(m=>`<div class="mi"><div class="mn">${esc(m.model.replace(/-scraper/g,'').replace(/-/g,' '))}</div>
         <div class="mm">${m.items.map(it=>`<div class="mmb" style="height:${Math.max(it.id===target.id?2:6,Math.min(50,it.vis*100*1.4))}px;background:${getBrandColor(it.name)}"></div>`).join('')}</div></div>`).join('')}</div>
       <div class="model-legend">${[...legendBrands].map(n=>`<div class="ml-item"><div class="ml-dot" style="background:${getBrandColor(n)}"></div><span${n===tN?' style="font-weight:700"':''}>${esc(n)}</span></div>`).join('')}</div></div>`:''}
-  </div>
-
-  <div class="page" id="pg2">
     <div class="rs"><h3>Top Competitors</h3><div class="ss">Competitors ranked by AI Visibility</div>
       <table class="bt"><thead><tr><th>#</th><th>Brand</th><th>Visibility</th><th>Market Share</th><th>Mentions</th><th>Avg. Position</th><th>Reputation</th></tr></thead><tbody>
       ${rows.map((r,i)=>`<tr class="${r.id===target.id?'hl':''}">
@@ -245,9 +242,6 @@ function render(D){
         <td><span class="sent-bar"><span class="fill" style="width:${Math.min(100,r.sent)}%"></span></span><span class="nm">${r.sent||'-'}</span></td>
       </tr>`).join('')}</tbody></table>
     </div>
-  </div>
-
-  <div class="page" id="pg3">
     ${pRows.length?`<div class="rs"><h3>Top Search Prompts</h3><div class="ss">Top 25 prompts by search volume</div>
       <table class="pt"><thead><tr><th>#</th><th>Query</th><th>Visibility</th><th>Leaders</th></tr></thead><tbody>
       ${pRows.slice(0,25).map((p,i)=>{const hasT=p.leaders.some(l=>l.toLowerCase()===tN.toLowerCase());
